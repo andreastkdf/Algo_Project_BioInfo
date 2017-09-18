@@ -1,0 +1,304 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[cyr]{aeguill}
+\usepackage[francais]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[french,ruled]{algorithm2e}
+
+\usepackage{tikz}
+\usepackage{verbatim}
+\usetikzlibrary{arrows,shapes}
+
+\lstset{
+language=python,
+basicstyle=\footnotesize,
+numbers=left,
+numberstyle=\normalsize,
+numbersep=7pt,
+}
+
+\pdfinfo{%
+  /Title    (Projet Algorithmique 3I003)
+  /Author   (KOSTAKIS Andrea)
+  /Creator  ()
+  /Producer ()
+  /Subject  ()
+  /Keywords (Algorithmique - Bioinformatique - Alignements de séquences ADN)
+}
+
+\begin{document}
+\begin{titlepage}
+	\centering
+	{\scshape\Large Algorithmique 3I003\par}
+	\vfill
+	\vspace{1cm}
+	\vspace{1.5cm}
+	{\huge Projet : Analyse de séquences en bioinformatique\par}
+	\vspace{2cm}
+	{\Large\itshape Andréa KOSTAKIS\par}
+	\vfill
+	Licence Informatique L3\par
+	Univeristé Pierre et Marie Curie
+
+	\vfill
+	\vfill
+	% Bottom of the page
+	{\large Année universitaire 2016-2017\par}
+\end{titlepage}
+\part{Partie théorique}
+\section{Alignement de coût minimal de séquences ADN: Conception et analyse des algorithmes}
+\subsection{Algorithme naïf }
+Considérons un algorithme naïf qui consiste à énumérer tous les alignements possibles entre deux séquences $X$ et $Y$ de longueur $d$. 
+Le principe de cette algorithme sera le calcul des alignements possibles pour toutes les sous-séquences de $X$ et $Y$.\\
+\begin{algorithm}
+\caption{EnumSeqNaïf}
+
+\Donnees{$X$ : séquence, $Y$ : séquence, $d$: longueur}
+\Res{Renvoie tous les alignements possibles}
+\Pour{$i$ de $1$ à d}{
+	\Pour{toutes les sous-séquences de $X$}{
+	 \Pour{toutes les sous-séquences de $Y$}{
+	 	Aligner chaque $n$-ième symbole de la sous-séquence $X$ avec ceux de $Y$.
+		\\Enumérer les différents cas.
+		}
+	}
+} 	
+\Retour $Enumeration$
+\end{algorithm}
+
+\subsubsection*{Complexité}
+Le nombre d'opérations $T_N$ ($T_N$ : étant la fonction complexité pire-cas pour l'algorithme)  à effectuer par l'algorithme EnumSeqNaïf est : 
+\begin{align*} 
+T_N \ge 2^{2^d}, \text{ donc } T_N \in O(2^n)
+\end{align*}
+\subsubsection*{Remarque}
+Le nombre $N$ d'alignements possibles pour deux séquences de même longueur est donné par: 
+\begin{align*}
+N = \sum_{k=0}^nC_{n+k}^{k} + k.C_n^k
+\end{align*}
+\subsection{Démonstration}
+On considère pour la suite de l'analyse deux séquences $X = (x_1, ..., x_m)$ et  $Y = (y_1, ... , y_n)$.
+\\Soit $M$ un alignement de $X$ et $Y$. Montrons que si $(x_m,y_n) \not\in{M}$, alors $x_m$ ou $y_n$ n'apparaît pas dans $M$. \\
+(Par l'absurde) Soit $(x_m,y_n) \not\in{M}$, supposons que $x_m$ et $y_n$ apparaissent dans $M$. \\$x_m$ et $y_n$ sont les derniers éléments des 
+séquences $X$ et $Y$ respectivement et s'ils apparaissent tous les deux dans l'alignement $M$ alors : 
+\begin{align}
+\exists{(x_m,y_q)} , 1 \le q < n 
+\end{align}
+\begin{align*}
+\text{et}
+\end{align*}
+\begin{align} 
+\exists{(x_k,y_n)}, 1 \le k < m
+\end{align}
+D'après la définition d'un alignement (pas de croisements): \\$ (1) $ , $(2) =>$ si $ i < n$ alors $m<k$ (resp. $n$<$q$ si $k<m$). CONTRADICTION: car $m$ et $n$ sont les longueurs des deux séquences.
+Donc $(1)$ ou $(2)$, donc $x_m$ ou $y_n$ n'apparaît pas dans $M$.
+\subsection{Cas pour $x_m$ et $y_n$ } 
+Supposons que l'on ne permet pas de correspondances$  \left( \begin{array}{c}
+-  \\
+- \\
+\end{array} \right) $entre les séquences, car elles conduisent forcement à des solutions dominées. En se basant donc, sur la propriété de la question 1.2, on peut en déduire pour les derniers éléments des deux séquences $X$ et $Y$, $x_m$ et $y_n$ respectivement:
+\\ \\
+
+  a) $\left ( \begin{array}{c}
+	x_m \\
+	- \\
+	\end{array} \right) : x_m \text{ peut-être présent que seul si } (x_m,y_n) \not\in M. \\ \\ \\
+	 b) \left ( \begin{array}{c}
+	x_m \\
+	y_n \\
+	\end{array} \right) :   \text{ si les deux éléments sont présents, ils sont forcement ensemble.} \\ \\
+	c) \left ( \begin{array}{c}
+	- \\
+	y_n \\
+	\end{array} \right) : y_n \text{ peut-être présent que seul si } (x_m,y_n) \not\in M.  $ 
+	
+\subsection{Coût minimal}
+Soit $F(i,j)$ le coût minimal pour l'alignement des séquences $(x_1,...,x_i)$ et $(y_1,...y_j)$.\\
+$a)$ $x_m$ est en correspondance avec un $gap$: $F(m,n)=F(m-1,n)+\delta_{gap}$ \\
+$b)$ si $(x_m,y_n) \in M$: $F(m,n)=F(m-1,n-1)+\delta_{x_{m}y_{n}}$ \\
+$c)$ $y_m$ est en correspondance avec un $gap$: $F(m,n)=F(m,n-1) + \delta_{gap}$
+
+\subsection{Formule de récurrence}
+D'après les questions précédentes on peut déduire la formule de récurrence du coût minimal pour l'alignements de deux séquences, 
+d'après les trois cas observés. \\
+pour $i \ge 1 , j \ge 1$ :
+\begin{align*}
+F(i,j) = min \begin{cases}
+	F(i-1,j)+ \delta_{gap} \\
+	F(i-1,j-1)+ \delta_{ij} \\
+	F(i,j-1)+ \delta_{gap}
+	\end{cases}
+\end{align*} 
+\subsection{Cas de base}
+Montrons que $F(i,0) = i\delta_{gap}$ pour tout $ i \in \{1,..m\}$ et $F(0,j) = j \delta_{gap}$ pour tout $j \in \{1,...n\}$. \\
+$F(i,0)$ (respectivement $F(0,j)$) correspond au coût minimal de l'alignement de la séquence $X$ (resp. $Y$) avec une séquence vide. Par définition,
+tous les éléments de la séquence $X$ (resp. $Y$) seront alignées avec des $gaps$ dans tous les cas, autant de $gaps$ que la longueur respective des
+deux séquences. Cette alignement $M_0$ est unique, donc minimal pour tout $i \in \{1,...m\}$ (resp. pour tout $j \in \{1,...n\}$).
+Par définition du coût d'un alignement: 
+\begin{align*}
+F(i,0) = f(M_0) = \sum_{{x_i,y_i}\in M_0} \delta_{x_i,y_j} + \sum_{{x_i}\not\in M_0} \delta_{gap} + \sum_{{y_j}\not\in M_0} \delta_{gap} 
+	= 0 + \sum_{{x_i}\not\in M_0} \delta_{gap} + 0 \\ = i\delta_{gap} \text{ pour tout } i \in \{1,..m\}.
+\end{align*}
+(recip. de la même manière $F(0,j) = j \delta_{gap}$ pour tout $j \in \{1,...n\}$.)
+\subsection{Algorithme COUT1}
+\begin{algorithm}
+\caption{COUT1}
+
+\Donnees{$X$ : séquence, $Y$ : séquence}
+\Res{Renvoie la valeur d'un alignement de coût minimal pour les séquences $X$ et $Y$. }
+$F(0,0) \leftarrow 0$\\
+$m \leftarrow taille(X)$\\
+$n \leftarrow taille(Y)$\\
+\Pour{$i$ de $1$ à $m$}{
+	$F(i,0) \leftarrow i.\delta_{gap}$
+	}
+\Pour{$j$ de $1$ à $n$}{
+	$F(0,j) \leftarrow j.\delta_{gap}$
+	}
+\Pour{$i$ de $1$ à $m$}{
+	\Pour{$j$ de $1$ à $n$}{
+	$ a \leftarrow F(i-1,j)+\delta_{gap}$ \\
+	$ b \leftarrow F(i-j,j-1)+\delta_{ij}$\\
+	$ c \leftarrow F(i,j-1)+\delta_{gap}$\\
+	$ F(i,j) \leftarrow min(a,b,c)$\\
+	}
+}
+\Retour $F(m,n)$
+\end{algorithm}
+\subsubsection*{Complexité en temps/espace}
+La complexité temporelle de COUT1 est en $O(n \times m)$, l'espace mémoire demandé pour l'exécution est un tableau de deux dimensions ( $n \times m$ ). 
+\\ \\ \\ \\ \\ \\  \\ \\ \subsection{Algorithme SOL1}
+\begin{algorithm}
+\caption{SOL1}
+\Donnees{$F$ : tableau à 2 dimensions des valeurs des couts $F(i,j)$ des séquences $X$ et $Y$}
+\Res{Renvoie l'alignement optimal des séquences $X$ et $Y$ }
+$F(0,0) \leftarrow 0$\\
+$m \leftarrow taille(X)$\\
+$n \leftarrow taille(Y)$\\
+$SOL \leftarrow$ ( ) \\
+\Pour{$i$ de $1$ à $m$}{
+	\Pour{$j$ de $1$ à $n$}{
+	$ a \leftarrow F(i-1,j)+\delta_{gap}$ \\
+	$ b \leftarrow F(i-j,j-1)+\delta_{ij}$\\
+	$ c \leftarrow F(i,j-1)+\delta_{gap}$\\
+	$ tmpMin \leftarrow min(a,b,c)$\\
+		\Si {$tmpMin == F(i-1,j)+\delta_{gap}$}{
+		\Retour $SOL.ajouter( \{x_i,-\})$
+		}
+		\Si {$tmpMin == F(i-1,j-1)+\delta_{i,j}$}{
+		\Retour $SOL.ajouter( \{x_i,y_j\})$
+		}
+		\Sinon{
+		 $SOL.ajouter( \{-,y_j\})$
+		}
+}		
+}
+\Retour $SOL$
+\end{algorithm}
+\subsubsection*{Complexité et conclusion de la première approche}
+L'algorithme est en $O(m \times n)$ , puisqu'il accède au éléments de F(i,j) un par un, puis effectue des opérations élémentaires. Pour conclure, cette approche s'effectue en deux temps; elle nécessite la création d'une matrice de coût $F(i,j)$ en $O(m \times n)$, puis ensuite le traitement de cette dernière en $O(m + n)$ pour construire un alignement optimal des séquences données. Les séquences étant souvent très grande, la taille $(m*n)$ demandée par ces algorithme est assez imposante et les calculs effectuées peuvent être très couteux sur les deux temps d'exécution. Cette approche ne paraît pas donc la plus optimale mais reste néanmoins une solution bien meilleure que l'approche naïve. 
+
+\section{Représentation du problème d'alignement optimal sous forme de graphe}
+On s'intéresse dans cette partie à une représentation du problème sous forme de graphe.
+\subsection{Coût des arcs pour les séquences $X=(C,T,T,G)$ et $Y=(A,C,T,G)$}
+\begin{figure}[h]
+\includegraphics[scale=0.7]{../graph}
+\end{figure}
+\subsection{Longueur du plus court chemin et alignement optimal des séquences $X$ et $Y$.}
+Montrons par récurrence forte sur $i+j$ que pour tout couple $(i,j),\\ i\in \{0,...\}$ et $j \in \{0,....n\}$, on a $F(i,j) = g(i,j)$.
+\\ BASE : pour $i = 0 , j = 0$ $(i+j=0)$
+\\ On a bien : 
+\begin{align*}
+F(0,0) = g(0,0) = 0 
+\end{align*}
+Par définition de $F(0,0)$ et du plus court chemin $g(0,0)$ (de $(0,0)$ à $(0,0)$).
+\\ INDUCTION : \\Supposons que $F(k,q)= g(k,q)$ pour tous les $k$, $0 \le k \le i-1$ et pour tous les $q$, $0\le q \le j-1$. Montrons que $F(i,j)=g(i,j)$
+\begin{equation*}
+\text{par définition, }
+F(i,j) = min \begin{cases} 
+		F(i-1,j)+\delta_{gap} \\
+		F(i-1,j-1)+ \delta_{i,j} \\
+		F(i,j-1)+\delta_{gap}
+		\end{cases}
+\end{equation*}
+\begin{equation*}
+\text{par hypothèse de récurrence, } 
+F(i,j)=g(i-1,j-1) + min(\delta_{gap},\delta_{i,j}) 
+\end{equation*}
+\begin{equation*}
+\text{Donc, par définition du plus court chemin, } 
+g(i-1,j-1) + min(\delta_{gap},\delta_{i,j}) = g(i,j)
+\end{equation*}
+\begin{equation*}
+\text{donc, }
+F(i,j)=g(i,j)
+\end{equation*}
+Donc, pour tout couple $(i,j), i\in \{0,...\}$ et $j \in \{0,....n\}$, on a $F(i,j) = g(i,j)$.
+On peut en déduire que $F(m,n)=g(m,n)$ et donc que le coût d'un alignement optimal des séquences $X$ et $Y$ est la la longueur du plus
+d'un plus court chemin entre le sommet $(0,0)$ et $(m,n)$ dans $G_{XY}$.
+\subsection{Algorithme de plus court chemin}
+On utilise ici l'algorithme de Dijktrsa pour déterminer le plus court chemin de $(0,0)$ à $(m,n)$ dans $G_{XY}$ . Ainsi, en l'implémentant avec une structure de tas, on obtient le plus court chemin avec une complexité en: \begin{align*} O((m\times n) \log(n))\end{align*}
+Dans l'exemple $2.1$, on obtient comme coût d'un l'alignement optimal $ L = 4$
+qui correspond à l'alignement $M = \{(-,A),(C,C),(T,T),(-,T),(G,G)\}$. \\
+Remarque : ce n'est pas le seul alignement optimal.
+\subsection{Conclusion}
+En représentant le problème sous forme de graphe on obtient un alignement optimal de deux séquences $X$ et $Y$ avec une complexité $O((m \times n)log(n))$ en une exécution, bien meilleure que la solution de la partie précédente, qui pour le même résultat nécessite l'exécution de deux algorithme de complexité $O(m \times n)$ chacun.
+\section{Amélioration de la complexité spatiale des algorithmes de la partie 1}
+\subsection{RAM - Longueur maximale}
+Dans les parties précédentes, la complexité spatiale des algorithmes étudiés est en $O(n*m)$, considérons ici que les gènes ont la même taille $(m=n)$, qu'une mémoire vive d'ordinateur varie de 8 à 32GO et que le codage d'un caractère demande 1 octet.
+Soit $D_{MAX}$ la longueur maximale (en nombre de nucléotides) que l'on peut traiter par les méthodes des parties précédentes.
+\begin{align*}
+8 \times (1024)^3 \le m \times n \le 32 \times (1024)^3 \\
+8 \times (1024)^3 \le D_{MAX}^2 \le 32  \times (1024)^3 \text{ , car $(m=n)$ } \\ \\
+\text{ Donc, } 92682 \le  D_{MAX} \le 185363 \text{ (en nucléotides) }
+\end{align*}
+\subsection{Algorithme COUT2}
+\begin{algorithm}
+\caption{COUT2}
+\Donnees{les séquences $X$ et $Y$, $i \in \{1..m\}$ et $j \in \{1...n\}$}
+\Res{Renvoie $F(i,j)$}
+\Pour{$l$ de $0$ à $j$}{
+	$ligneA[l] \leftarrow = l.\delta_{gap}$
+	}
+\Pour{$k$ de $1$ à $i$}{
+	$ ligneB[0] \leftarrow k.\delta_{gap}$ \\
+	\Pour{$l$ de $1$ à $j$}{
+		$ ligneB[l] \leftarrow min ( ligneA[l-1] + \delta_{i,j}, ligneA[l] + \delta_{gap},ligneB[k-1]+\delta_{gap}) $
+	}
+}		
+\Retour $ligneB[j]$
+\end{algorithm}
+\subsubsection*{Complexité} 
+Complexité temps : $O(i\times j)$ 
+, complexité espace : $O(i+j)$. \\
+\subsection{Algorithme COUT2BIS}
+On rappelle qu'on a montré (2.2) que $F(i,j) = g(i,j)$ qui est la longueur du plus court chemin du sommet $(0,0)$ au sommet $(i,j)$ dans le 
+graphe $G_{XY}$. On note à présent $h(i,j)$ la longueur du plus court chemin du sommet $(i,j)$ au somment $(m,n)$ dans le graphe $G_{XY}$.
+\begin{algorithm}
+\caption{COUT2BIS}
+\Donnees{les séquences $X$ et $Y$, $i \in \{1..m\}$ et $j \in \{1...n\}$}
+\Res{Renvoie $h(i,j)$ : la valeur du plus court court chemin $(i,j) \rightarrow (m,n)$}
+$m \leftarrow X.longueur$ \\
+$n \leftarrow Y.longueur$ \\
+\Pour{$l$ de $0$ à $n-j$}{
+	$ligneA[l] \leftarrow = l.\delta_{gap}$
+	}
+\Pour{$k$ de $1$ à $(m-i)$}{
+	$ ligneB[0] \leftarrow k.\delta_{gap}$ \\
+	\Pour{$l$ de $1$ à $(n-j)$}{
+		$ ligneB[l] \leftarrow min ( ligneA[l-1] + \delta_{k+i,l+j}, ligneA[l] + \delta_{gap},ligneB[l-1]+\delta_{gap}) $
+	}
+}
+\Retour $ligneB[n-j]$
+\end{algorithm}
+\subsection{Plus court chemin passant par $(i,j)$}
+Dans le graphe $G_{XY}$ :\\ la valeur du plus court chemin du sommet $(0,0)$ au sommet $(i,j)$ est donnée par $g(i,j)$.
+La valeur du plus court chemin du sommet $(i,j)$ au sommet $(m,n)$ est donnée par $h(i,j)$. \\On obtient donc la valeur du plus court chemin du sommet $(0,0)$ au sommet $(m,n)$ en passant par $(i,j)$ d'après : $g(i,j)+h(i,j)$. On peut en déduire la méthode pour calculer la valeur de ce plus court chemin en passant par $(i,j)$ 
+en utilisant les deux algorithmes précédents. Donc la valeur recherché est : COUT2($X,Y,i,j$) + COUT2BIS($X,Y,i,j$).
+\subsection{Algorithme SOL2}
+La complexité spatiale de l'algorithme SOL2($0,0,m,n$) est en $O(n+m)$, pour le calcul de $i^*$ l'algorithme fait l'appel de COUT2 et COUT2BIS qui sont eux en complexité spatiale de $O(n+m)$ au total pour leur exécution.
+
+\end{document}
