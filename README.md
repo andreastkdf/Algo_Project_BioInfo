@@ -18,4 +18,4 @@ Three strategies complexity comparison.
 ### Run
 
 ```
-python adn_project_prog.py.py
+python adn_project_prog.py
