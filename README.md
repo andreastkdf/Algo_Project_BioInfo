@@ -13,6 +13,7 @@ Three strategies complexity comparison.
 
 [Python Source](https://github.com/andreastkdf/Algo_Project_BioInfo/blob/master/adn_project_prog.py)
 
-###Run
+##Run
+
 ```
 python adn_project_prog.py.py
